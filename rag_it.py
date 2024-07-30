@@ -65,7 +65,7 @@ query_result = collection.query(
 )
 context_result = query_result['documents'][0]
 
-response = ollama.chat(
+stream = ollama.chat(
     model='phi3',
     messages=[
         {
@@ -76,7 +76,25 @@ response = ollama.chat(
             "role": "user",
             "content": prompt
         }
-    ]
+    ],
+    stream=True
 )
 
-print(response['message']['content'])
+for chunk in stream:
+    print(chunk['message']['content'], end='')
+
+# response = ollama.chat(
+#     model='phi3',
+#     messages=[
+#         {
+#             "role": "system",
+#             "content": f"Answer the questions based on the news feed given here only. If you do not know the answer, say I do not know. The news feed content is here:\n\n------------------------------------------------\n\n{context_result}\n\n------------------------------------------------\n\n"
+#         },
+#         {
+#             "role": "user",
+#             "content": prompt
+#         }
+#     ]
+# )
+
+# print(response['message']['content'])
