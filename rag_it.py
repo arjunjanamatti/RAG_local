@@ -30,10 +30,10 @@ for entry in entries:
     link = entry.link
     content = entry.summary
     # grab the "terms" in each of the tags and join them
-    tags = ", ".join([t['terms'] for t in entry.tags])
+    tags = ", ".join([t['term'] for t in entry.tags])
     # in documents, follow the title by line feed and summary
     documents.append(f'# {title} \n {content} \n Tags: {tags}')
-    metadatas.append(f"title: {title}, link: {link}, tags: {tags}")
+    metadatas.append({"title": title, "link": link, "tags": tags})
     # here links are the unique identifier
     ids.append(link)
 
@@ -52,8 +52,8 @@ client = chromadb.Client()
 collection = client.get_or_create_collection(name = collection_name)
 
 collection.add(
-    document = documents,
-    metadata = metadatas,
+    documents = documents,
+    metadatas = metadatas,
     ids = ids
 )
 
@@ -63,4 +63,20 @@ query_result = collection.query(
                                 # conext to find similar documents
                                 query_texts = [prompt]
 )
-print(query_result)
+context_result = query_result['documents'][0]
+
+response = ollama.chat(
+    model='phi3',
+    messages=[
+        {
+            "role": "system",
+            "content": f"Answer the questions based on the news feed given here only. If you do not know the answer, say I do not know. The news feed content is here:\n\n------------------------------------------------\n\n{context_result}\n\n------------------------------------------------\n\n"
+        },
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+)
+
+print(response['message']['content'])
