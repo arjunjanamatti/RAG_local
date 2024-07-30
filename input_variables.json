@@ -1,3 +1,4 @@
 {
-    "rss_feed": "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
+    "rss_feed": "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+    "collection_name": "nyt_tech_feed"
 }

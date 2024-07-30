@@ -12,9 +12,9 @@ with open(file_path, "r") as file:
 
 # Access the variables from the loaded data
 rss_feed = data.get("rss_feed")
+collection_name = data.get("collection_name")
 
 # read the feed
-
 feed = feedparser.parse(url_file_stream_or_string = rss_feed)
 
 # get the list of entries
@@ -33,3 +33,34 @@ for entry in entries:
     tags = ", ".join([t['terms'] for t in entry.tags])
     # in documents, follow the title by line feed and summary
     documents.append(f'# {title} \n {content} \n Tags: {tags}')
+    metadatas.append(f"title: {title}, link: {link}, tags: {tags}")
+    # here links are the unique identifier
+    ids.append(link)
+
+
+# Currently the context window is increasing day by day with the language
+# models, however this approach is not optimized, hence loads of resources
+# would be used up, which will lead to increase in cost.
+# Hence using a vector database is about optimization and especially
+# with local, which may use local llm which is having less context window
+
+
+# create the chroma db using client
+# this is not using persistent [creation in local system]
+client = chromadb.Client()
+
+collection = client.get_or_create_collection(name = collection_name)
+
+collection.add(
+    document = documents,
+    metadata = metadatas,
+    ids = ids
+)
+
+prompt = "List top 3 most interesting AI related news with summaries and reference link"
+
+query_result = collection.query(
+                                # conext to find similar documents
+                                query_texts = [prompt]
+)
+print(query_result)
